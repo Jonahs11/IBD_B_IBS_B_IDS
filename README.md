@@ -28,3 +28,9 @@ Once these fields are set, pass in the config file path using the --config flag.
 ```
 python run_IBD_calc.py --config <Path to config>
 ```
+
+# TRUFFLE Usage
+After playing around with different filtering parameters, we settled on this command to run truffle:
+```
+./truffle --vcf $file --cpu 4 --maf 0.1 --segments --mindist 2000
+```
