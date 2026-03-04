@@ -30,7 +30,15 @@ python run_IBD_calc.py --config <Path to config>
 ```
 
 # TRUFFLE Usage
-After playing around with different filtering parameters, we settled on this command to run truffle:
+Here is the command to run truffle:
 ```
-./truffle --vcf $file --cpu 4 --maf 0.1 --segments --mindist 2000
+./truffle --vcf $file --segments #OPTIONALLY: --mindist 2000 --maf 0.1 --cpu 4
 ```
+
+### Outputs
+- `truffle.ibd` holds the IBD 0,1,2 predicted percentages per pair in your VCF
+- `truffle.segments` holds the predicted IBD segments in every chromosome you have data for
+
+### Processing
+- `./get_pair_segments.sh {person1} {person2} {segments file}` extracts just the pair you are interested in
+- `python karyogram_ibd.py {pair segment file} --out karyogram.png` exports a karyogram visualizing IBD segments for all chromosomes of the pair you are interested in
