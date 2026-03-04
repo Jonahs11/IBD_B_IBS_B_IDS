@@ -44,3 +44,8 @@ Here is the command to run truffle:
   - outputs a pair segment file `{p1}_{p2}.segments`
 - `python karyogram_ibd.py {pair segment file} --out karyogram.png` exports a karyogram visualizing IBD segments for all chromosomes of the pair you are interested in
   - Note: Claude Sonnet 4.6 assisted in generating this visualization code
+ 
+# Still TODO
+1. Clean up repo organization
+2. Improve custom IBD segment prediction
+3. Evaluate custom method vs. TRUFFLE with appropriate runtime and concordance statistics/visualizations
