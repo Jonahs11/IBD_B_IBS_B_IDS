@@ -42,3 +42,4 @@ Here is the command to run truffle:
 ### Processing
 - `./get_pair_segments.sh {person1} {person2} {segments file}` extracts just the pair you are interested in
 - `python karyogram_ibd.py {pair segment file} --out karyogram.png` exports a karyogram visualizing IBD segments for all chromosomes of the pair you are interested in
+  - Note: Claude Sonnet 4.6 assisted in generating this visualization code
