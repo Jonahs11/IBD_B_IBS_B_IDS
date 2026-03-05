@@ -44,6 +44,13 @@ Here is the command to run truffle:
   - outputs a pair segment file `{p1}_{p2}.segments`
 - `python karyogram_ibd.py {pair segment file} --out karyogram.png` exports a karyogram visualizing IBD segments for all chromosomes of the pair you are interested in
   - Note: Claude Sonnet 4.6 assisted in generating this visualization code
+
+# Novel Algorithm Development
+We also tried developing a novel algorithm that uses different math than TRUFFLE. For each SNP, using MAF, we calculate the odds that the SNP is located in IBD0, 1, or 2. We then convert to log odds. We smoothed the odds for IBD2 to limit odds of 0. From there we made 1k long SNP blocks and calculated which IBD state is most likely. Then we smoothed blocks by exploring in windows of 10 blocks. 
+
+### Outputs
+- `novel.ibd` is an image of the predicted IBD% across CHR1 for two siblings, as well as a visual representation of the chromosome
+
  
 # Still TODO
 1. Clean up repo organization
