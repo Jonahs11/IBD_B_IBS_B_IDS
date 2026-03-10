@@ -51,10 +51,11 @@ Here is the command to run truffle:
   - Here is an example output for a sibling pair in 1000 Genomes: ![Karyogram of IBD segments for sibling pair in 1000 Genomes](figures/karyogram.png)
 
 # Novel Algorithm Development
-We also tried developing a novel algorithm that uses different math than TRUFFLE. For each SNP, using MAF, we calculate the odds that the SNP is located in IBD0, 1, or 2. We then convert to log odds. We smoothed the odds for IBD2 to limit odds of 0. From there we made 1k long SNP blocks and calculated which IBD state is most likely. Then we smoothed blocks by exploring in windows of 10 blocks. 
+We also tried developing a novel algorithm that uses different math than TRUFFLE. For each SNP, using MAF, we calculate the odds that the SNP is located in IBD0, 1, or 2. We then convert to log odds. We smoothed the odds for IBD2 to limit odds of 0. From there we made 1k long SNP blocks and calculated which IBD state is most likely. Then we smoothed blocks by exploring in windows of 10 blocks. The customizable script is available to run as a ipynb and is avaiable in the repo as Unique_IBD_Algo.ipynb
 
 ### Outputs
-- Here is an example image of predicted IBD% across CHR1 for two siblings, as well as a visual representation of the chromosome: ![chromosome 1 example](figures/novel.ibd.png)
+  - Note: GPT 5 assisted in generating the visualization code
+  - Here is an example output for a sibling pair in 1000 Genomes for chr21 and chr22: ![Karyogram of IBD segments for sibling pair in 1000 Genomes for chr 21 and chr22] (figures/unique_karyogram.png)
 
  
 # Still TODO
