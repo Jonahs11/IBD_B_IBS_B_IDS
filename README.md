@@ -55,7 +55,7 @@ We also tried developing a novel algorithm that uses different math than TRUFFLE
 
 ### Outputs
   - Note: GPT 5 assisted in generating the visualization code
-  - Here is an example output for a sibling pair in 1000 Genomes for chr21 and chr22: ![Karyogram of IBD segments for sibling pair in 1000 Genomes for chr 21 and chr22] (figures/unique_karyogram.png)
+  - Here is an example output for a sibling pair in 1000 Genomes for chr21 and chr22: ![Karyogram of IBD segments for sibling pair in 1000 Genomes for chr 21 and chr22](figures/karyogram_unique.png)
 
  
 # Still TODO
