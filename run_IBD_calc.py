@@ -4,181 +4,170 @@ import numpy as np
 import pysam
 import pandas as pd
 import json
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import time
+
+# def is_ibs1(gt1, gt2):
+#   gt1_set = set(gt1)
+#   gt2_set = set(gt2)
+#   jacard = len(gt1_set.intersection(gt2_set)) / len(gt1_set.union(gt2_set))
+#   if jacard >= 0.5:
+#     return True
+#   return False
+
+# def is_ibs2(gt1, gt2):
+#   gt1_set = set(gt1)
+#   gt2_set = set(gt2)
+#   jaccard = len(gt1_set.intersection(gt2_set)) / len(gt1_set.union(gt2_set))
+#   if jaccard == 1:
+#     return True
+#   return False
 
 
 def is_ibs1(gt1, gt2):
-  gt1_set = set(gt1)
-  gt2_set = set(gt2)
-  jacard = len(gt1_set.intersection(gt2_set)) / len(gt1_set.union(gt2_set))
-  if jacard >= 0.5:
-    return True
-  return False
+    return abs(sum(gt1) - sum(gt2)) < 2
 
 def is_ibs2(gt1, gt2):
-  gt1_set = set(gt1)
-  gt2_set = set(gt2)
-  jaccard = len(gt1_set.intersection(gt2_set)) / len(gt1_set.union(gt2_set))
-  if jaccard == 1:
-    return True
-  return False
-
-
-
-
-def plot_ibd_chromosome(ibd1_segments, ibd2_segments, chrom_length=None, chrom_name="chr", ax=None):
-    """
-    Plot IBD0, IBD1, and IBD2 regions along a chromosome.
-
-    Parameters:
-        ibd1_segments: list of (start, end) tuples
-        ibd2_segments: list of (start, end) tuples
-        chrom_length:  total chromosome length in bp. If None, inferred from segments.
-        chrom_name:    label for the y-axis
-        ax:            optional matplotlib Axes to draw on
-    """
-    if chrom_length is None:
-        all_ends = [e for _, e in ibd1_segments] + [e for _, e in ibd2_segments]
-        chrom_length = max(all_ends) if all_ends else 1
-
-    if ax is None:
-        fig, ax = plt.subplots(figsize=(14, 2))
-
-    bar_height = 0.6
-    y = 0
-
-    colors = {
-        "IBD0": "#D3D3D3",
-        "IBD1": "#4A90D9",
-        "IBD2": "#D94A4A",
-    }
-
-    # draw full chromosome as IBD0 background
-    ax.barh(y, chrom_length, height=bar_height, color=colors["IBD0"], edgecolor="black", linewidth=0.5)
-
-    # overlay IBD1
-    for start, end in ibd1_segments:
-        ax.barh(y, end - start, left=start, height=bar_height, color=colors["IBD1"])
-
-    # overlay IBD2 on top (takes priority)
-    for start, end in ibd2_segments:
-        ax.barh(y, end - start, left=start, height=bar_height, color=colors["IBD2"])
-
-    # formatting
-    ax.set_xlim(0, chrom_length)
-    ax.set_ylim(-0.5, 0.5)
-    ax.set_yticks([0])
-    ax.set_yticklabels([chrom_name])
-    ax.set_xlabel("Position (bp)")
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.spines["left"].set_visible(False)
-
-    # scale x-axis to Mb if chromosome is large
-    if chrom_length > 1_000_000:
-        ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x/1e6:.0f}"))
-        ax.set_xlabel("Position (Mb)")
-
-    legend_patches = [mpatches.Patch(color=c, label=l) for l, c in colors.items()]
-    ax.legend(handles=legend_patches, loc="upper right", frameon=False, ncol=3)
-
-    plt.tight_layout()
-    return ax
-
+    return sum(gt1) == sum(gt2)
 
 
 def compute_ibd_prop_and_segments(
     vcf, samp1, samp2,
-    min_af=0.1, A=1, B=10, min_markers=2000,
-    r0=np.inf, r1=np.inf, r2=np.inf,
+    min_af=0.1, A=1, B=3, min_sig_length=2000000, min_markers=1000,
+    r0=np.inf,
     ibd_function=is_ibs1
 ):
-    L_shared = 0
-    s1, s2, s3, e = 0, 0, 0, 0
-    n_valid_markers = 0
+    e = 0
+    s1_pos = 0
+    s2_pos = 0
+    s3_pos = 0
+    s0_pos = 0
+    
+
     segments = []
-    pos_start = None
     prev_pos = None
     prev_chrom = None
-
+    
     def do_break():
-        nonlocal s1, s2, s3, e, L_shared, pos_start, prev_pos
-        length = s3
-        if (s1 > r0) or (s2 > r0):
-            length = s3 + s2 + s1
-        if (s1 > r1) or (s2 > r2):
-            s1 = s1 + s2
+        nonlocal s0_pos, s1_pos, s2_pos, s3_pos, e, r0, min_sig_length, segments, chrom
+        length = s3_pos - s2_pos
+        s2_length = s2_pos - s1_pos
+        s1_length = s1_pos - s0_pos
+    
+        if s1_length > r0:
+            length += (s1_length + s2_length)
+        elif s2_length > r0:
+            length += s2_length
+            
+        if length > min_sig_length:
+            pos_start = s3_pos - length
+            segments.append((chrom, pos_start, s3_pos))
+            # segment added, reset segs
+            s0_pos = s3_pos
+            s1_pos = s3_pos
+            s2_pos = s3_pos
+            # s3_pos = 0
         else:
-            s1 = s2
-        if length > min_markers:
-            L_shared += length
-            segments.append((pos_start, prev_pos))
-            s1, s2, s3 = 0, 0, 0
-        s2 = s3
+            s0_pos = s1_pos
+            s1_pos = s2_pos
+            s2_pos = s3_pos
+
         e = 0
-        s3 = 0
 
     for record in vcf.fetch():
-        chrom = record.chrom
-        pos = record.pos
-        af = record.info.get("AF", [0])[0]
 
+        af = record.info.get("AF", [0])[0]
         if (af < min_af) or (af > (1 - min_af)):
             continue
 
+        new_chrom = record.chrom
         # chromosome change — flush and reset
-        if chrom != prev_chrom:
+        if new_chrom != prev_chrom:
             if prev_chrom is not None:
                 do_break()
-                s1, s2, s3, e = 0, 0, 0, 0
-            prev_chrom = chrom
-            pos_start = pos
+            prev_chrom = new_chrom
+            chrom = new_chrom
+            print(f"Processing chromosome {chrom}")
+            s0_pos = 0
+            s1_pos = 0
+            s2_pos = 0
+            s3_pos = 0
 
-        n_valid_markers += 1
-        s3 += 1
+        s3_pos = record.pos
+
         gt_samp1 = record.samples[samp1]["GT"]
         gt_samp2 = record.samples[samp2]["GT"]
         if ibd_function(gt_samp1, gt_samp2):
             e = max(e - 1, 0)
         else:
             e += A
-
         if (e + A) > B:
             do_break()
-            pos_start = pos
-        prev_pos = pos
-    # final segment check
-    if s3 > 0:
-        do_break()
 
-    return segments, L_shared, n_valid_markers
+    do_break()
+    return segments
 
-
-def reconcile_ibd_segments(ibd1_segments, ibd2_segments):
-    ibd2 = sorted(ibd2_segments, key=lambda x: x[0])
+def reconcile_ibd_segments(ibd1_segments, ibd2_segments, chr_sizes_d):
+    ibd2 = sorted(ibd2_segments, key=lambda x: (x[0], x[1]))
     ibd1_out = []
-    for start, end in sorted(ibd1_segments, key=lambda x: x[0]):
-        # Subtract all IBD2 regions from this IBD1 segment
+    ibd1_out_d = {}
+    for chrom, start, end in sorted(ibd1_segments, key=lambda x: (x[0], x[1])):
         remaining = [(start, end)]
-        for s2_start, s2_end in ibd2:
+        for s2_chrom, s2_start, s2_end in ibd2:
+            if s2_chrom != chrom:
+                continue
             if s2_start > end:
                 break
             new_remaining = []
             for r_start, r_end in remaining:
                 if s2_end < r_start or s2_start > r_end:
-                    # no overlap
                     new_remaining.append((r_start, r_end))
                 else:
-                    # left fragment
                     if r_start < s2_start:
                         new_remaining.append((r_start, s2_start - 1))
-                    # right fragment
                     if r_end > s2_end:
                         new_remaining.append((s2_end + 1, r_end))
             remaining = new_remaining
-        ibd1_out.extend(remaining)
-    return ibd1_out, list(ibd2_segments)
+        for r_start, r_end in remaining:
+            ibd1_out.append((chrom, r_start, r_end))
+            current_eles = ibd1_out_d.get(chrom, [])
+            current_eles.append((r_start, r_end, "ibd1"))
+            ibd1_out_d[chrom] = current_eles
+    ibd2_out_d = {}
+    for chrom, start, end in ibd2_segments:
+        lis = ibd2_out_d.get(chrom, [])
+        lis.append((start, end, "ibd2"))
+        ibd2_out_d[chrom] = lis
+
+    chroms = sorted(np.unique([ele for ele in list(ibd1_out_d.keys()) + list(ibd2_out_d.keys())]))
+    data_d = {"chrom": [], "start": [], "end": [], "ibd_status": []}
+    for chrom in chroms:
+        ibd1_eles = ibd1_out_d.get(chrom, [])
+        ibd2_eles = ibd2_out_d.get(chrom, [])
+        comb_lis = sorted(ibd1_eles + ibd2_eles)
+
+        chrom_len = chr_sizes_d.get(chrom, 0)
+        cursor = 0
+
+        for start, end, ibd_state in comb_lis:
+            if start > cursor:
+                data_d["chrom"].append(chrom)
+                data_d["start"].append(cursor)
+                data_d["end"].append(start)
+                data_d["ibd_status"].append("ibd0")
+            data_d["chrom"].append(chrom)
+            data_d["start"].append(start)
+            data_d["end"].append(end)
+            data_d["ibd_status"].append(ibd_state)
+            cursor = end
+
+        if cursor < chrom_len:
+            data_d["chrom"].append(chrom)
+            data_d["start"].append(cursor)
+            data_d["end"].append(chrom_len)
+            data_d["ibd_status"].append("ibd0")
+
+    df = pd.DataFrame(data_d)
+    return df
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Compute IBD segments and proportions between two samples in a VCF.")
@@ -194,40 +183,77 @@ if __name__ == "__main__":
     
     vcf_path = config["vcf"]
     A = config.get("A", 1)
-    B = config.get("B", 10)
+    B = config.get("B", 3)
     min_af = config.get("min_af", 0.1)
-    min_markers = config.get("min_markers", 2000)
-    r0 = config.get("r0", np.inf)
-    r1 = config.get("r1", np.inf)
-    r2 = config.get("r2", np.inf)
     samp1 = config["sample1"]
     samp2 = config["sample2"]
+    out_p = config.get("out_dir", f"./{samp1}_vs_{samp2}")
     
+    if not os.path.exists(out_p):
+        os.makedirs(out_p)
     
+    min_sig_length_ibd1 = config.get("min_sig_length_ibd1", 5_000_000)
+    r0_ibd1 = min_sig_length_ibd1 // 2
+    
+    min_sig_length_ibd2 = config.get("min_sig_length_ibd2", 2_000_000)
+    r0_ibd2 = min_sig_length_ibd2 // 2
+    
+    start_time = time.time()
     vcf = pysam.VariantFile(vcf_path)
     
-    ibd1_segments, L_shared, n_valid_markers = compute_ibd_prop_and_segments(
+    ibd1_segments = compute_ibd_prop_and_segments(
         vcf, samp1, samp2,
-        min_af=min_af, A=A, B=B, min_markers=min_markers,
-        r0=r0, r1=r1, r2=r2,
+        min_af=min_af, A=A, B=B, min_sig_length=min_sig_length_ibd1,
+        r0=r0_ibd1,
         ibd_function=is_ibs1
     )
     
-    ibd2_segments, _, _ = compute_ibd_prop_and_segments(
+    # reopen vcf to reset iterator
+    vcf = pysam.VariantFile(vcf_path) 
+    ibd2_segments = compute_ibd_prop_and_segments(
         vcf, samp1, samp2,
-        min_af=min_af, A=A, B=B, min_markers=min_markers,
-        r0=r0, r1=r1, r2=r2,
+        min_af=min_af, A=A, B=B, min_sig_length=min_sig_length_ibd2,
+        r0=r0_ibd2,
         ibd_function=is_ibs2
     )
     
-    ibd1_final, ibd2_final = reconcile_ibd_segments(ibd1_segments, ibd2_segments)
+    # hard coded from the vcf being used
+    chrom_size_d = {
+        "1": 249250621,
+        "2": 243199373,
+        "3": 198022430,
+        "4": 191154276,
+        "5": 180915260,
+        "6": 171115067,
+        "7": 159138663,
+        "8": 146364022,
+        "9": 141213431,
+        "10": 135534747,
+        "11": 135006516,
+        "12": 133851895,
+        "13": 115169878,
+        "14": 107349540,
+        "15": 102531392,
+        "16": 90354753,
+        "17": 81195210,
+        "18": 78077248,
+        "19": 59128983,
+        "20": 63025520,
+        "21": 48129895,
+        "22": 51304566,
+    }
     
-    out_p = config.get("output_prefix", "ibd_output")
-    fig, ax = plt.subplots(figsize=(14, 2))
-    plot_ibd_chromosome(ibd1_final, ibd2_final, chrom_name=f"{samp1} vs {samp2}",ax=ax)
-    plt.savefig(f"{out_p}_ibd_plot.png", dpi=300)
-    plt.close()
+    out_d = {"ibd1_segments": ibd1_segments, "ibd2_segments": ibd2_segments}
+    out_json_p = os.path.join(out_p, f"ibd_segments.json")
+    with open(out_json_p, "w") as f:
+        json.dump(out_d, f, indent=4)
     
+    segment_df = reconcile_ibd_segments(ibd1_segments, ibd2_segments, chrom_size_d)
+    out_p = os.path.join(out_p, f"ibd_segments.tsv")
+    segment_df.to_csv(out_p, sep="\t", index=False)
+    
+    end_time = time.time()
+    print(f"IBD calculation completed in {end_time - start_time:.2f} seconds")
     
     
 
