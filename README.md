@@ -23,14 +23,46 @@ conda activate IBD_env
 ## Running
 Data paths and parameter choices are organized using a config.json file. An example of one of these files can be found in the config_files directory. Many choices have defaults set, but the vcf path of interest and samp1/2 ids **must** be set in this file prior to running.
 
+
+### Config Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `vcf` | Path to the VCF file containing samples to compare | — |
+| `sample1` | ID of first sample | — |
+| `sample2` | ID of second sample | — |
+| `A` | Error cost | 1 |
+| `B` | Error budget | 3 |
+| `min_af` | Minimum minor allele fraction | 0.1 |
+| `min_sig_length_ibd1` | Minimum contiguous length not breaking error budget to classify as IBD1. Based on analysis from the TRUFFLE paper. | 5 MB |
+| `min_sig_length_ibd2` | Minimum contiguous length not breaking error budget to classify as IBD2. Based on analysis from the TRUFFLE paper. | 2 MB |
+| `out_dir` | Directory to output results | — |
+
+
 Once these fields are set, pass in the config file path using the --config flag.
 
 ```
-python run_IBD_calc.py --config <Path to config>
+python run_pyTRUFFLE.py --config <Path to config>
 ```
 
+## Outputs
+
+The `out_dir` will contain an `ibd_segments.tsv` file with IBD classifications for the genomic regions in the VCF file, structured as follows:
+
+| Column | Description |
+|--------|-------------|
+| `chrom` | Chromosome |
+| `start` | Start position |
+| `end` | End position |
+| `ibd_status` | IBD classification |
+
+
+
 # TRUFFLE Usage
-Here is the command to run truffle:
+
+The TRUFFLE binary can be installed from the docs found at https://adimitromanolakis.github.io/truffle-website/.
+
+Once installed here is the command to run truffle:
 ```
 ./truffle --vcf $file --segments #OPTIONALLY: --mindist 2000 --maf 0.1 --cpu 4
 ```
@@ -39,21 +71,34 @@ Here is the command to run truffle:
 - `truffle.ibd` holds the IBD 0,1,2 predicted percentages per pair in your VCF
 - `truffle.segments` holds the predicted IBD segments in every chromosome you have data for
 
-### Processing
-- `./get_pair_segments.sh {person1} {person2} {segments file}` extracts just the pair you are interested in
-  - outputs a pair segment file `{p1}_{p2}.segments`
-- `python karyogram_ibd.py {pair segment file} --out karyogram.png` exports a karyogram visualizing IBD segments for all chromosomes of the pair you are interested in
-  - Note: Claude Sonnet 4.6 assisted in generating this visualization code
-  - Here is an example output for a sibling pair in 1000 Genomes: ![Karyogram of IBD segments for sibling pair in 1000 Genomes](figures/karyogram.png)
 
-# Novel Algorithm Development
-We also tried developing a novel algorithm that uses different math than TRUFFLE. For each SNP, using MAF, we calculate the odds that the SNP is located in IBD0, 1, or 2. We then convert to log odds. We smoothed the odds for IBD2 to limit odds of 0. From there we made 1k long SNP blocks and calculated which IBD state is most likely. Then we smoothed blocks by exploring in windows of 10 blocks. 
+# Vignette
 
-### Outputs
-- Here is an example image of predicted IBD% across CHR1 for two siblings, as well as a visual representation of the chromosome: ![chromosome 1 example](figures/novel.ibd.png)
+For a demo we will run and compare pyTRUFFLE (our implementation) against TRUFFLE on chromosome 20, for a sibling pair from the 1000Genomes dataset (HG00581 and HG00635). The vcf for these two samples are found in `./data/HG00581_HG00635.vcf.gz` of the repo.
+
+
+First clone and create the conda environment if not done so already.
+```
+git clone https://github.com/Jonahs11/IBD_B_IBS_B_IDS.git
+conda env create -f requirements.yaml
+conda activate IBD_env
+
+```
+
+A config file is already created in `config_files/run1.json`
+
+```
+python run_pyTRUFFLE.py --config ./config_files/run1.json
+```
+
+The file `ibd_segments.tsv` should not exist in the `HG00581_vs_HG00635_chr20` directory.
+
+The notebook `plot_ibd_results.ipynb` details how to plot this result.
+
+
+
+
+
+
 
  
-# Still TODO
-1. Clean up repo organization
-2. Improve custom IBD segment prediction
-3. Evaluate custom method vs. TRUFFLE with appropriate runtime and concordance statistics/visualizations
