@@ -10,6 +10,10 @@ Our algorithm is inspired by and will benchmark against the tool TRUFFLE[^1].
 
 [^1]: Dimitromanolakis A, Paterson AD, Sun L. Fast and Accurate Shared Segment Detection and Relatedness Estimation in Un-phased Genetic Data via TRUFFLE. Am J Hum Genet. 2019 Jul 3;105(1):78-88. doi: 10.1016/j.ajhg.2019.05.007. Epub 2019 Jun 6. PMID: 31178127; PMCID: PMC6612710.
 
+# Data
+
+To run the same data that we ran, go to 'data_access_link.txt'. There will be a link to google drive. The text file should describe the path to the two main files we use. Each of the files are VCFS (and tbis) of fully related individuals. 
+
 # Usage
 
 ## Installation

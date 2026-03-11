@@ -1,0 +1,25 @@
+How to access data:
+
+https://drive.google.com/drive/folders/1C0iVK9xlJh5xXupsQPMVb-2Oy895oGn7?usp=drive_link
+
+This should be viewable by anyone with link. To get data for chrom 1 for one sibling pair, go to:
+
+
+1000Genome/NonPruned_VCFs/siblings_merged.vcf.gz
+1000Genome/NonPruned_VCFs/siblings_merged.vcf.gz.tbi
+
+to get full siblings:
+"HG00501"
+"HG00524"
+
+
+To get all the chromosomes of siblings:
+"HG00581"
+"HG00635"
+
+go to:
+
+1000Genome/eval_pairs/HG00581_HG00635_merged.vcf.gz
+1000Genome/eval_pairs/HG00581_HG00635_merged.vcf.gz.tbi
+
+
