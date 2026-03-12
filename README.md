@@ -66,10 +66,11 @@ The `out_dir` will contain an `ibd_segments.tsv` file with IBD classifications f
 
 The TRUFFLE binary can be installed from the docs found at https://adimitromanolakis.github.io/truffle-website/.
 
-Once installed here is the command to run truffle:
+Once installed here is the command we used to run truffle:
 ```
-./truffle --vcf $file --segments #OPTIONALLY: --mindist 2000 --maf 0.1 --cpu 4
+./truffle --vcf $file --segments --nofiltering #OPTIONALLY: --cpu 4
 ```
+Note that we removed filtering because the defailt filtering was giving us weird results (e.g. IBD 2 = 0.04 for known full siblings)
 
 ### Outputs
 - `truffle.ibd` holds the IBD 0,1,2 predicted percentages per pair in your VCF
