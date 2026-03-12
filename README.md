@@ -70,7 +70,7 @@ Once installed here is the command we used to run truffle:
 ```
 ./truffle --vcf $file --segments --nofiltering #OPTIONALLY: --cpu 4
 ```
-Note that we removed filtering because the defailt filtering was giving us weird results (e.g. IBD 2 = 0.04 for known full siblings)
+Note that we removed filtering because the default filtering was giving us weird results (e.g. IBD 2 = 0.04 for known full siblings)
 
 ### Outputs
 - `truffle.ibd` holds the IBD 0,1,2 predicted percentages per pair in your VCF
