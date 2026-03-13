@@ -103,7 +103,8 @@ The file `ibd_segments.tsv` should not exist in the `HG00581_vs_HG00635_chr20` d
 The notebook `plot_ibd_results.ipynb` details how to plot this result as well as the provided full results.
 
 
-
+# AI Acknowledgement
+We acknowledge the assistance of AI models, such as Claude Sonnet/Opus, in generating plotting/printing code.
 
 
 
