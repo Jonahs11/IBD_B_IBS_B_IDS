@@ -1,13 +1,11 @@
 {
-    "vcf": "PATH_TO_VCF_FILE",
-    "sample1": "HG00501",
-    "sample2": "HG00524",
+    "vcf": "./data/HG00581_HG00635_chr20.vcf.gz",
+    "sample1": "HG00581",
+    "sample2": "HG00635",
     "A": 1,
-    "B": 10,
+    "B": 3,
     "min_af": 0.1,
-    "min_markers": 2000,
-    "r0": 5000,
-    "r1": 5000,
-    "r2": 5000,
-    "output_prefix": "ibd_results"
+    "min_sig_length_ibd1": 5000000,
+    "min_sig_length_ibd2": 2000000,
+    "out_dir": "./HG00581_vs_HG00635_chr20"
 }
