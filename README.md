@@ -4,15 +4,17 @@ This is the repo for the Personal Genomics (CSE 284) project of Michael Iter, Da
 
 We implemented a method to detect Identical By Descent (IBD) segments using unphased genotypes between two individuals.
 
-We are calling our tool IBDbIBSbIDS, as we are using runs of Identical by State (IBS) alleles to infer when the chromosomal segment being considered shares the same ancestral origin (IBD), and we are IDS (Iter, Dan, Silverman).
-
-Our algorithm is inspired by and will benchmark against the tool TRUFFLE[^1].
+To accomplish this we are created a Python based implementation of the tool TRUFFLE[^1]. We are calling our tool pyTRUFFLE.
+TRUFFLE leverages long runs of Identical by State (IBS) SNPs to classify regions as IBD. Our tool is open source and easy to run.
 
 [^1]: Dimitromanolakis A, Paterson AD, Sun L. Fast and Accurate Shared Segment Detection and Relatedness Estimation in Un-phased Genetic Data via TRUFFLE. Am J Hum Genet. 2019 Jul 3;105(1):78-88. doi: 10.1016/j.ajhg.2019.05.007. Epub 2019 Jun 6. PMID: 31178127; PMCID: PMC6612710.
 
 # Data
 
-To run the same data that we ran, go to 'data_access_link.txt'. There will be a link to google drive. The text file should describe the path to the two main files we use. Each of the files are VCFS (and tbis) of fully related individuals. 
+To access the full datasets we ran, go to 'data_access_link.txt'. There will be a link to google drive containg full VCFs.
+Further, for each access we included Chromesome 20 of a sibling pair (HG00581, HG00635) in this repo directly `data/HG00581_HG00635.vcf.gz`.
+
+We also included full resutls of pyTRUFFLE and TRUFFLE on the full genomes of this sibling pair in `HG00581_vs_HG00635` and `HG00581_vs_HG00635_TRUFFLE` respectively.
 
 # Usage
 
@@ -98,7 +100,7 @@ python run_pyTRUFFLE.py --config ./config_files/run1.json
 
 The file `ibd_segments.tsv` should not exist in the `HG00581_vs_HG00635_chr20` directory.
 
-The notebook `plot_ibd_results.ipynb` details how to plot this result.
+The notebook `plot_ibd_results.ipynb` details how to plot this result as well as the provided full results.
 
 
 
