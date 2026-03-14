@@ -44,7 +44,7 @@ Data paths and parameter choices are organized using a config.json file. An exam
 | `min_sig_length_ibd2` | Minimum contiguous length not breaking error budget to classify as IBD2. Based on analysis from the TRUFFLE paper. | 2 MB |
 | `out_dir` | Directory to output results | — |
 
-
+* Note the min_sig_length_ibd1/2 are based on simulations run in the TRUFFLE paper[^1].
 Once these fields are set, pass in the config file path using the --config flag.
 
 ```
